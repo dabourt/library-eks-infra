@@ -1,0 +1,34 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+.crash
+.terraform/
+.terraform.lock.hcl
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+terraform.tfvars
+terraform.tfvars.json
+plan.out
+
+# Sensitive files
+*.pem
+*.key
+*.crt
+*.env
+
+# Kubernetes
+.kube/
+
+# Jenkins
+secrets/
+*.log
+
+# OS / IDE / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
