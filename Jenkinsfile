@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/your-user/library-eks-infra.git'
+                git branch: 'main', url: 'https://github.com/dabourt/library-eks-infra.git'
             }
         }
 
