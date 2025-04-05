@@ -13,45 +13,45 @@ pipeline {
             }
         }
 
-        stage('Terraform Init') {
-            steps {
-                sh 'terraform init'
-            }
-        }
+        // stage('Terraform Init') {
+        //     steps {
+        //         sh 'terraform init'
+        //     }
+        // }
 
-        stage('Terraform Validate') {
-            steps {
-                sh 'terraform validate'
-            }
-        }
+        // stage('Terraform Validate') {
+        //     steps {
+        //         sh 'terraform validate'
+        //     }
+        // }
 
-        stage('Terraform Plan') {
-            steps {
-                sh 'terraform plan -out=tfplan'
-            }
-        }
+        // stage('Terraform Plan') {
+        //     steps {
+        //         sh 'terraform plan -out=tfplan'
+        //     }
+        // }
 
-        stage('Terraform Apply') {
-            steps {
-                script {
-                    try {
-                        input message: 'Approve infrastructure changes?'
-                        sh 'terraform apply tfplan'
+        // stage('Terraform Apply') {
+        //     steps {
+        //         script {
+        //             try {
+        //                 input message: 'Approve infrastructure changes?'
+        //                 sh 'terraform apply tfplan'
 
-                        // Now the cluster exists, update kubeconfig
-                        sh '''
-                        aws eks update-kubeconfig \
-                        --region eu-west-1 \
-                        --name my-eks-cluster
-                        '''
-                    } catch (err) {
-                        echo "Terraform Apply stage aborted or failed: ${err}"
-                        currentBuild.result = 'ABORTED'
-                        error("Pipeline aborted during Terraform Apply.")
-                    }
-                }
-            }
-        }
+        //                 // Now the cluster exists, update kubeconfig
+        //                 sh '''
+        //                 aws eks update-kubeconfig \
+        //                 --region eu-west-1 \
+        //                 --name my-eks-cluster
+        //                 '''
+        //             } catch (err) {
+        //                 echo "Terraform Apply stage aborted or failed: ${err}"
+        //                 currentBuild.result = 'ABORTED'
+        //                 error("Pipeline aborted during Terraform Apply.")
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Terraform Destroy') {
             steps {
