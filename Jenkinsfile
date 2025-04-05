@@ -33,15 +33,17 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
-                sh '''
-                aws eks update-kubeconfig \
-                --region eu-west-1 \
-                --name my-eks-cluster
-                '''
                 script {
                     try {
                         input message: 'Approve infrastructure changes?'
                         sh 'terraform apply tfplan'
+
+                        // Now the cluster exists, update kubeconfig
+                        sh '''
+                        aws eks update-kubeconfig \
+                        --region eu-west-1 \
+                        --name my-eks-cluster
+                        '''
                     } catch (err) {
                         echo "Terraform Apply stage aborted or failed: ${err}"
                         currentBuild.result = 'ABORTED'
