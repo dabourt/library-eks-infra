@@ -13,41 +13,58 @@ pipeline {
             }
         }
 
-        stage('Terraform Init') {
-            steps {
-                sh 'terraform init'
-            }
-        }
+        // stage('Terraform Init') {
+        //     steps {
+        //         sh 'terraform init'
+        //     }
+        // }
 
-        stage('Terraform Validate') {
-            steps {
-                sh 'terraform validate'
-            }
-        }
+        // stage('Terraform Validate') {
+        //     steps {
+        //         sh 'terraform validate'
+        //     }
+        // }
 
-        stage('Terraform Plan') {
-            steps {
-                sh 'terraform plan -out=tfplan'
-            }
-        }
+        // stage('Terraform Plan') {
+        //     steps {
+        //         sh 'terraform plan -out=tfplan'
+        //     }
+        // }
 
-        stage('Terraform Apply') {
+        // stage('Terraform Apply') {
+        //     steps {
+        //         sh '''
+        //         aws eks update-kubeconfig \
+        //         --region eu-west-1 \
+        //         --name my-eks-cluster
+        //         '''
+        //         script {
+        //             try {
+        //                 input message: 'Approve infrastructure changes?'
+        //                 sh 'terraform apply tfplan'
+        //             } catch (err) {
+        //                 echo "Terraform Apply stage aborted or failed: ${err}"
+        //                 currentBuild.result = 'ABORTED'
+        //                 error("Pipeline aborted during Terraform Apply.")
+        //             }
+        //         }
+        //     }
+        // }
+
+        stage('Terraform Destroy') {
+            when {
+                expression {
+                    return params.DESTROY_RESOURCES == true
+                }
+            }
             steps {
-                sh '''
-                aws eks update-kubeconfig \
-                --region eu-west-1 \
-                --name my-eks-cluster
-                '''
                 script {
-                    retry(2) { // Allow up to 2 retries
-                        try {
-                            input message: 'Approve infrastructure changes?'
-                            sh 'terraform apply tfplan'
-                        } catch (err) {
-                            echo "Terraform Apply stage aborted or failed: ${err}"
-                            currentBuild.result = 'ABORTED'
-                            error("Pipeline aborted during Terraform Apply.")
-                        }
+                    try {
+                        input message: 'Are you sure you want to destroy the infrastructure?'
+                        sh 'terraform destroy -auto-approve'
+                    } catch (err) {
+                        echo "Terraform Destroy stage failed: ${err}"
+                        error("Pipeline failed during Terraform Destroy.")
                     }
                 }
             }
@@ -63,20 +80,6 @@ pipeline {
         }
         aborted {
             echo 'Pipeline was aborted by the user.'
-        }
-        always {
-            script {
-                if (params.DESTROY_RESOURCES == true) {
-                    try {
-                        input message: 'Are you sure you want to destroy the infrastructure?'
-                        sh 'terraform destroy -auto-approve'
-                    } catch (err) {
-                        echo "Terraform Destroy stage failed: ${err}"
-                        error("Pipeline failed during Terraform Destroy.")
-                    }
-                }
-            }
-            echo 'Pipeline execution completed.'
         }
     }
 }
