@@ -33,8 +33,25 @@ pipeline {
 
         stage('Terraform Apply') {
             steps {
+                sh '''
+                aws eks update-kubeconfig \
+                --region eu-west-1 \
+                --name my-eks-cluster
+                '''
                 input message: 'Approve infrastructure changes?'
                 sh 'terraform apply tfplan'
+            }
+        }
+
+        stage('Terraform Destroy') {
+            when {
+                expression {
+                    return params.DESTROY_RESOURCES == true
+                }
+            }
+            steps {
+                input message: 'Are you sure you want to destroy the infrastructure?'
+                sh 'terraform destroy -auto-approve'
             }
         }
     }
