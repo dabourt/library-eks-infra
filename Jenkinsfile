@@ -50,26 +50,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Terraform Destroy') {
-            when {
-                beforeAgent true
-                expression {
-                    return params.DESTROY_RESOURCES == true
-                }
-            }
-            steps {
-                script {
-                    try {
-                        input message: 'Are you sure you want to destroy the infrastructure?'
-                        sh 'terraform destroy -auto-approve'
-                    } catch (err) {
-                        echo "Terraform Destroy stage failed: ${err}"
-                        error("Pipeline failed during Terraform Destroy.")
-                    }
-                }
-            }
-        }
     }
 
     post {
@@ -83,6 +63,17 @@ pipeline {
             echo 'Pipeline was aborted by the user.'
         }
         always {
+            script {
+                if (params.DESTROY_RESOURCES == true) {
+                    try {
+                        input message: 'Are you sure you want to destroy the infrastructure?'
+                        sh 'terraform destroy -auto-approve'
+                    } catch (err) {
+                        echo "Terraform Destroy stage failed: ${err}"
+                        error("Pipeline failed during Terraform Destroy.")
+                    }
+                }
+            }
             echo 'Pipeline execution completed.'
         }
     }
