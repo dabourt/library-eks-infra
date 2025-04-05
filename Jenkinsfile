@@ -39,13 +39,15 @@ pipeline {
                 --name my-eks-cluster
                 '''
                 script {
-                    try {
-                        input message: 'Approve infrastructure changes?'
-                        sh 'terraform apply tfplan'
-                    } catch (err) {
-                        echo "Terraform Apply stage aborted or failed: ${err}"
-                        currentBuild.result = 'ABORTED'
-                        error("Pipeline aborted during Terraform Apply.")
+                    retry(2) { // Allow up to 2 retries
+                        try {
+                            input message: 'Approve infrastructure changes?'
+                            sh 'terraform apply tfplan'
+                        } catch (err) {
+                            echo "Terraform Apply stage aborted or failed: ${err}"
+                            currentBuild.result = 'ABORTED'
+                            error("Pipeline aborted during Terraform Apply.")
+                        }
                     }
                 }
             }
