@@ -38,8 +38,16 @@ pipeline {
                 --region eu-west-1 \
                 --name my-eks-cluster
                 '''
-                input message: 'Approve infrastructure changes?'
-                sh 'terraform apply tfplan'
+                script {
+                    try {
+                        input message: 'Approve infrastructure changes?'
+                        sh 'terraform apply tfplan'
+                    } catch (err) {
+                        echo "Terraform Apply stage aborted or failed: ${err}"
+                        currentBuild.result = 'ABORTED'
+                        error("Pipeline aborted during Terraform Apply.")
+                    }
+                }
             }
         }
 
@@ -50,18 +58,28 @@ pipeline {
                 }
             }
             steps {
-                input message: 'Are you sure you want to destroy the infrastructure?'
-                sh 'terraform destroy -auto-approve'
+                script {
+                    try {
+                        input message: 'Are you sure you want to destroy the infrastructure?'
+                        sh 'terraform destroy -auto-approve'
+                    } catch (err) {
+                        echo "Terraform Destroy stage failed: ${err}"
+                        error("Pipeline failed during Terraform Destroy.")
+                    }
+                }
             }
         }
     }
 
     post {
         failure {
-            echo 'Terraform deployment failed.'
+            echo 'Terraform deployment failed or was aborted.'
         }
         success {
             echo 'Infrastructure deployed successfully.'
+        }
+        aborted {
+            echo 'Pipeline was aborted by the user.'
         }
     }
 }
