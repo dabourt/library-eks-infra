@@ -13,45 +13,48 @@ pipeline {
             }
         }
 
-        // stage('Terraform Init') {
-        //     steps {
-        //         sh 'terraform init'
-        //     }
-        // }
+        stage('Terraform Init') {
+            steps {
+                sh 'terraform init'
+            }
+        }
 
-        // stage('Terraform Validate') {
-        //     steps {
-        //         sh 'terraform validate'
-        //     }
-        // }
+        stage('Terraform Validate') {
+            steps {
+                sh 'terraform validate'
+            }
+        }
 
-        // stage('Terraform Plan') {
-        //     steps {
-        //         sh 'terraform plan -out=tfplan'
-        //     }
-        // }
+        stage('Terraform Plan') {
+            steps {
+                sh 'terraform plan -out=tfplan'
+            }
+        }
 
-        // stage('Terraform Apply') {
-        //     steps {
-        //         script {
-        //             try {
-        //                 input message: 'Approve infrastructure changes?'
-        //                 sh 'terraform apply tfplan'
+        stage('Terraform Apply Infra') {
+            steps {
+                script {
+                    input message: 'Approve EKS infrastructure changes?'
+                    sh 'terraform apply -target=module.eks_cluster -auto-approve'
 
-        //                 // Now the cluster exists, update kubeconfig
-        //                 sh '''
-        //                 aws eks update-kubeconfig \
-        //                 --region eu-west-1 \
-        //                 --name my-eks-cluster
-        //                 '''
-        //             } catch (err) {
-        //                 echo "Terraform Apply stage aborted or failed: ${err}"
-        //                 currentBuild.result = 'ABORTED'
-        //                 error("Pipeline aborted during Terraform Apply.")
-        //             }
-        //         }
-        //     }
-        // }
+                    // Ensure kubeconfig is updated after cluster is created
+                    sh '''
+                    aws eks update-kubeconfig \
+                    --region eu-west-1 \
+                    --name my-eks-cluster
+                    '''
+                }
+            }
+        }
+
+        stage('Terraform Apply K8s Resources') {
+            steps {
+                script {
+                    input message: 'Approve Kubernetes resource deployment?'
+                    sh 'terraform apply -auto-approve'
+                }
+            }
+        }
 
         stage('Terraform Destroy') {
             steps {
