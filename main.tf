@@ -129,12 +129,24 @@ provider "kubernetes" {
   host                   = data.aws_eks_cluster.eks.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
   token                  = data.aws_eks_cluster_auth.eks.token
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", "eu-west-1"]
+  }
+}
+
+resource "kubernetes_namespace" "library_site" {
+  metadata {
+    name = "library-site"
+  }
 }
 
 resource "kubernetes_service" "lib_web_loadbalancer" {
   metadata {
     name      = "lib-web-loadbalancer"
-    namespace = "library-site"
+    namespace = kubernetes_namespace.library_site.metadata[0].name
   }
 
   spec {
