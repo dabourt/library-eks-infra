@@ -53,6 +53,7 @@ pipeline {
 
         stage('Terraform Destroy') {
             when {
+                beforeAgent true
                 expression {
                     return params.DESTROY_RESOURCES == true
                 }
@@ -80,6 +81,9 @@ pipeline {
         }
         aborted {
             echo 'Pipeline was aborted by the user.'
+        }
+        always {
+            echo 'Pipeline execution completed.'
         }
     }
 }
