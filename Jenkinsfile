@@ -52,21 +52,8 @@ pipeline {
         // }
 
         stage('Terraform Destroy') {
-            when {
-                expression {
-                    return params.DESTROY_RESOURCES == true
-                }
-            }
             steps {
-                script {
-                    try {
-                        input message: 'Are you sure you want to destroy the infrastructure?'
-                        sh 'terraform destroy -auto-approve'
-                    } catch (err) {
-                        echo "Terraform Destroy stage failed: ${err}"
-                        error("Pipeline failed during Terraform Destroy.")
-                    }
-                }
+                sh 'terraform destroy -auto-approve'
             }
         }
     }
