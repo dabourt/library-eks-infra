@@ -118,22 +118,21 @@ resource "aws_security_group_rule" "allow_ssh" {
 # Use the aws_eks_cluster data source to retrieve kubeconfig
 data "aws_eks_cluster" "eks" {
   name = module.eks.cluster_name
-  depends_on = [module.eks]
+  depends_on = [module.eks.cluster_id]
 }
 
 data "aws_eks_cluster_auth" "eks" {
   name = module.eks.cluster_name
+  depends_on = [module.eks.cluster_id]
 }
 
 provider "kubernetes" {
-  host                   = data.aws_eks_cluster.eks.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.eks.token
-
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
   exec {
     api_version = "client.authentication.k8s.io/v1beta1"
+    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
     command     = "aws"
-    args        = ["eks", "get-token", "--cluster-name", module.eks.cluster_name, "--region", "eu-west-1"]
   }
 }
 
@@ -141,6 +140,7 @@ resource "kubernetes_namespace" "library_site" {
   metadata {
     name = "library-site"
   }
+  depends_on = [module.eks.cluster_endpoint, aws_eks_node_group.eks_nodes]
 }
 
 resource "kubernetes_service" "lib_web_loadbalancer" {
@@ -161,6 +161,8 @@ resource "kubernetes_service" "lib_web_loadbalancer" {
       target_port = 5000
     }
   }
+
+  depends_on = [kubernetes_namespace.library_site]
 }
 
 # Outputs
