@@ -102,7 +102,7 @@ resource "aws_launch_template" "eks_launch_template" {
     associate_public_ip_address = true
   }
 
-  key_name = "server_key" // Ensure this is your valid SSH key name
+  key_name = "server_key" // Ensure this is your valid SSH key name.
 }
 
 # Add a security group rule to allow SSH access
